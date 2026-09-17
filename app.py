@@ -82,7 +82,7 @@ elif page == "Prediction":
     st.markdown("---")
 
     # Image upload (ONLY HERE)
-    st.markdown("### 🖼️ Optional: Upload skin image")
+    st.markdown("### 🖼️ Optional: if you have a rash Upload skin image")
 
     uploaded_file = st.file_uploader("Upload image", type=["jpg", "png"])
 
