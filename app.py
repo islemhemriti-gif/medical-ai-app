@@ -59,3 +59,21 @@ elif page == "Prediction":
 elif page == "Data Analysis":
     st.title("Dataset Overview")
     st.write("Add dataset visualization here later")
+if st.button("Analyze"):
+
+    if glucose < 70:
+        st.warning("⚠️ Low glucose (hypoglycemia)")
+    elif glucose <= 140:
+        st.success("✅ Glucose level is normal")
+    else:
+        st.error("⚠️ High glucose (possible diabetes risk)")
+
+    # BMI explanation
+    if bmi < 18.5:
+        st.info("BMI: Underweight")
+    elif bmi < 25:
+        st.success("BMI: Normal")
+    elif bmi < 30:
+        st.warning("BMI: Overweight")
+    else:
+        st.error("BMI: Obesity")
