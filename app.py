@@ -59,10 +59,3 @@ elif page == "Prediction":
 elif page == "Data Analysis":
     st.title("Dataset Overview")
     st.write("Add dataset visualization here later")
-import pandas as pd
-
-df = pd.read_csv("diabetes.csv")
-
-st.dataframe(df.head())
-
-st.bar_chart(df["Glucose"])
