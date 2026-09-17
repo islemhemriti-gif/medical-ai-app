@@ -101,7 +101,7 @@ elif page == "Data Analysis":
     st.markdown("### Preview of dataset")
 
     # Load dataset
-    df = pd.read_csv("diabetes.csv.csv")
+    df = pd.read_csv("diabetes.csv")
 
     st.dataframe(df.head())
 
