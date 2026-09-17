@@ -21,64 +21,77 @@ if page == "Home":
     st.markdown("""
     ### Welcome 👋
 
-    This application uses Machine Learning to analyze medical data.
+    This app helps you analyze simple medical indicators.
 
-    ---
-    **Features:**
-    - 📊 Data visualization  
-    - 🤖 AI-based prediction  
-    - 📈 Interactive analysis  
+    👉 Go to **Prediction** to enter your lab results  
+    👉 Go to **Data Analysis** to explore dataset insights  
 
-    ⚠️ Educational purposes only
+    ⚠️ This tool is for educational purposes only (not a medical diagnosis)
     """)
 
     col1, col2 = st.columns(2)
 
     with col1:
-        st.info("Model trained on medical dataset")
+        st.info("Model based on medical dataset")
 
     with col2:
-        st.success("Ready for prediction")
+        st.success("Ready for use")
 
 # ---------------- PREDICTION PAGE ----------------
 elif page == "Prediction":
 
-    st.title("Patient Analysis")
+    st.title("🧪 Patient Analysis")
 
-    glucose = st.number_input("Glucose", 0, 300, 120)
-    bmi = st.number_input("BMI", 0.0, 70.0, 25.0)
-    age = st.number_input("Age", 1, 120, 30)
+    st.markdown("### Enter your lab values:")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        glucose = st.number_input("Glucose (mg/dL)", 0, 300, 120)
+
+    with col2:
+        bmi = st.number_input("BMI", 0.0, 70.0, 25.0)
+
+    with col3:
+        age = st.number_input("Age", 1, 120, 30)
+
+    st.markdown("---")
 
     if st.button("Analyze"):
-        if glucose > 140:
-            st.error("⚠️ High diabetes risk")
+
+        st.subheader("📊 Results:")
+
+        # Glucose interpretation
+        if glucose < 70:
+            st.warning("⚠️ Low glucose (hypoglycemia)")
+        elif glucose <= 140:
+            st.success("✅ Glucose level is normal")
         else:
-            st.success("✅ Low diabetes risk")
+            st.error("⚠️ High glucose (possible diabetes risk)")
+
+        # BMI interpretation
+        if bmi < 18.5:
+            st.info("BMI: Underweight")
+        elif bmi < 25:
+            st.success("BMI: Normal")
+        elif bmi < 30:
+            st.warning("BMI: Overweight")
+        else:
+            st.error("BMI: Obesity")
+
+    st.markdown("---")
+
+    # Image upload (ONLY HERE)
+    st.markdown("### 🖼️ Optional: Upload skin image")
+
+    uploaded_file = st.file_uploader("Upload image", type=["jpg", "png"])
+
+    if uploaded_file:
+        st.image(uploaded_file, caption="Uploaded image", use_column_width=True)
+        st.info("AI skin analysis coming soon...")
 
 # ---------------- DATA PAGE ----------------
 elif page == "Data Analysis":
-    st.title("Dataset Overview")
-    st.write("Add dataset visualization here later")
-if st.button("Analyze"):
+    st.title("📊 Dataset Overview")
 
-    if glucose < 70:
-        st.warning("⚠️ Low glucose (hypoglycemia)")
-    elif glucose <= 140:
-        st.success("✅ Glucose level is normal")
-    else:
-        st.error("⚠️ High glucose (possible diabetes risk)")
-
-    # BMI explanation
-    if bmi < 18.5:
-        st.info("BMI: Underweight")
-    elif bmi < 25:
-        st.success("BMI: Normal")
-    elif bmi < 30:
-        st.warning("BMI: Overweight")
-    else:
-        st.error("BMI: Obesity")
-uploaded_file = st.file_uploader("Upload skin image", type=["jpg", "png"])
-
-if uploaded_file:
-    st.image(uploaded_file)
-    st.write("AI analysis coming soon...")
+    st.write("This section will display dataset insights and charts.")
