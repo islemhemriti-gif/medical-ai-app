@@ -1,5 +1,7 @@
 import streamlit as st
-from PIL import Image   # ✅ import at top
+from PIL import Image
+import pandas as pd
+import matplotlib.pyplot as plt
 
 st.set_page_config(
     page_title="Medical AI Diagnostic System",
@@ -82,7 +84,7 @@ elif page == "Prediction":
 
     st.markdown("---")
 
-    # ✅ ONLY ONE image uploader (fixed)
+    # Image upload
     st.markdown("### 🖼️ Optional: Upload skin image")
 
     uploaded_file = st.file_uploader("Upload image", type=["jpg", "png"])
@@ -92,8 +94,41 @@ elif page == "Prediction":
         st.image(image, caption="Uploaded image", use_container_width=True)
         st.info("AI skin analysis coming soon...")
 
-# ---------------- DATA PAGE ----------------
+# ---------------- DATA ANALYSIS PAGE ----------------
 elif page == "Data Analysis":
     st.title("📊 Dataset Overview")
 
-    st.write("This section will display dataset insights and charts.")
+    st.markdown("### Preview of dataset")
+
+    # Load dataset
+    df = pd.read_csv("diabetes.csv.csv")
+
+    st.dataframe(df.head())
+
+    st.markdown("---")
+
+    st.markdown("### 📈 Data Visualization")
+
+    col1, col2 = st.columns(2)
+
+    # Glucose chart
+    with col1:
+        st.subheader("Glucose Distribution")
+        fig1, ax1 = plt.subplots()
+        ax1.hist(df["Glucose"], bins=20)
+        st.pyplot(fig1)
+
+    # BMI chart
+    with col2:
+        st.subheader("BMI Distribution")
+        fig2, ax2 = plt.subplots()
+        ax2.hist(df["BMI"], bins=20)
+        st.pyplot(fig2)
+
+    st.markdown("---")
+
+    # Age chart
+    st.subheader("Age Distribution")
+    fig3, ax3 = plt.subplots()
+    ax3.hist(df["Age"], bins=20)
+    st.pyplot(fig3)
