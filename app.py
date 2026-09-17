@@ -77,3 +77,8 @@ if st.button("Analyze"):
         st.warning("BMI: Overweight")
     else:
         st.error("BMI: Obesity")
+uploaded_file = st.file_uploader("Upload skin image", type=["jpg", "png"])
+
+if uploaded_file:
+    st.image(uploaded_file)
+    st.write("AI analysis coming soon...")
