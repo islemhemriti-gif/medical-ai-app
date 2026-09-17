@@ -89,7 +89,14 @@ elif page == "Prediction":
     if uploaded_file:
         st.image(uploaded_file, caption="Uploaded image", use_column_width=True)
         st.info("AI skin analysis coming soon...")
+from PIL import Image
 
+uploaded_file = st.file_uploader("Upload image", type=["jpg", "png"])
+
+if uploaded_file:
+    image = Image.open(uploaded_file)
+    st.image(image, caption="Uploaded image", use_container_width=True)
+    st.info("AI skin analysis coming soon...")
 # ---------------- DATA PAGE ----------------
 elif page == "Data Analysis":
     st.title("📊 Dataset Overview")
