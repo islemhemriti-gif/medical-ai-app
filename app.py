@@ -1,4 +1,5 @@
 import streamlit as st
+from PIL import Image   # ✅ import at top
 
 st.set_page_config(
     page_title="Medical AI Diagnostic System",
@@ -81,22 +82,16 @@ elif page == "Prediction":
 
     st.markdown("---")
 
-    # Image upload (ONLY HERE)
-    st.markdown("### 🖼️ Optional: if you have a rash Upload skin image")
+    # ✅ ONLY ONE image uploader (fixed)
+    st.markdown("### 🖼️ Optional: Upload skin image")
 
     uploaded_file = st.file_uploader("Upload image", type=["jpg", "png"])
 
     if uploaded_file:
-        st.image(uploaded_file, caption="Uploaded image", use_column_width=True)
+        image = Image.open(uploaded_file)
+        st.image(image, caption="Uploaded image", use_container_width=True)
         st.info("AI skin analysis coming soon...")
-from PIL import Image
 
-uploaded_file = st.file_uploader("Upload image", type=["jpg", "png"])
-
-if uploaded_file:
-    image = Image.open(uploaded_file)
-    st.image(image, caption="Uploaded image", use_container_width=True)
-    st.info("AI skin analysis coming soon...")
 # ---------------- DATA PAGE ----------------
 elif page == "Data Analysis":
     st.title("📊 Dataset Overview")
