@@ -13,3 +13,11 @@ if st.button("Analyze"):
         st.error("⚠️ High diabetes risk")
     else:
         st.success("✅ Low diabetes risk")
+import streamlit as st
+import pandas as pd
+
+st.set_page_config(
+    page_title="Medical AI Diagnostic System",
+    page_icon="🧬",
+    layout="wide"
+)
