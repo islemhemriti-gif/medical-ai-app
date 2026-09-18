@@ -2,6 +2,7 @@ import streamlit as st
 from PIL import Image
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 import numpy as np
 import joblib
 
@@ -9,7 +10,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph
 
 st.set_page_config(
-    page_title="Medical AI Diagnostic System",
+    page_title="Medical AI Platform",
     page_icon="🧬",
     layout="wide"
 )
@@ -19,36 +20,32 @@ model = joblib.load("model.pkl")
 scaler = joblib.load("scaler.pkl")
 
 # ---------------- SIDEBAR ----------------
-st.sidebar.title("🧬 Medical AI Dashboard")
+st.sidebar.title("🧬 Medical AI Platform")
 page = st.sidebar.radio("Navigation", ["Home", "Prediction", "Data Analysis"])
 
 # ---------------- HOME ----------------
 if page == "Home":
-    st.title("🧬 Medical AI Diagnostic System")
+    st.title("🧬 Medical AI Platform")
 
     st.markdown("""
-    ### Welcome 👋
+    ### AI-Powered Clinical Decision Support
 
-    This AI system analyzes medical lab data to estimate diabetes risk.
+    This platform analyzes medical data using machine learning to assist in early diabetes risk detection.
 
-    👉 Go to **Prediction** to enter patient data  
-    👉 Go to **Data Analysis** to explore dataset insights  
+    **Modules:**
+    - 🧪 Prediction Engine  
+    - 📊 Data Analysis Dashboard  
+    - 📄 Report Generation  
 
-    ⚠️ Educational use only — not a medical diagnosis
+    ⚠️ Educational use only
     """)
-
-    col1, col2 = st.columns(2)
-    with col1:
-        st.info("AI model trained on real dataset")
-    with col2:
-        st.success("System ready")
 
 # ---------------- PREDICTION ----------------
 elif page == "Prediction":
 
-    st.title("🧪 AI Diabetes Prediction")
+    st.title("🧪 Clinical Prediction Engine")
 
-    st.markdown("### Enter patient medical values")
+    st.markdown("### Enter patient clinical parameters")
 
     col1, col2, col3 = st.columns(3)
 
@@ -68,52 +65,57 @@ elif page == "Prediction":
 
     st.markdown("---")
 
-    if st.button("Predict Risk"):
+    if st.button("Run AI Analysis"):
 
         input_data = np.array([[pregnancies, glucose, blood_pressure,
                                 skin_thickness, insulin, bmi, dpf, age]])
 
-        scaled_data = scaler.transform(input_data)
+        scaled = scaler.transform(input_data)
 
-        prediction = model.predict(scaled_data)
-        probability = model.predict_proba(scaled_data)[0][1]
+        prediction = model.predict(scaled)[0]
+        proba = model.predict_proba(scaled)[0][1]
 
-        st.subheader("📊 Results")
+        st.subheader("📊 Clinical Results")
 
-        if prediction[0] == 1:
-            st.error(f"⚠️ High Risk ({round(probability*100,2)}%)")
+        # Metrics (PRO UI)
+        m1, m2, m3 = st.columns(3)
+        m1.metric("Risk (%)", f"{round(proba*100,2)}%")
+        m2.metric("Glucose", glucose)
+        m3.metric("BMI", bmi)
+
+        if prediction == 1:
+            st.error("⚠️ High Diabetes Risk")
         else:
-            st.success(f"✅ Low Risk ({round(probability*100,2)}%)")
+            st.success("✅ Low Diabetes Risk")
 
         # ---------------- EXPLANATION ----------------
-        st.markdown("### 🧠 Explanation")
+        st.markdown("### 🧠 Clinical Interpretation")
 
-        explanation = []
+        report_points = []
 
         if glucose > 140:
-            explanation.append("High glucose increases diabetes risk")
+            report_points.append("Elevated glucose level indicates impaired glycemic control.")
         if bmi > 30:
-            explanation.append("High BMI is linked to obesity risk")
+            report_points.append("BMI suggests obesity, a major diabetes risk factor.")
         if age > 45:
-            explanation.append("Risk increases with age")
+            report_points.append("Age increases metabolic risk.")
+        if dpf > 0.8:
+            report_points.append("Family history contributes to genetic predisposition.")
 
-        if explanation:
-            for e in explanation:
-                st.write("•", e)
+        if report_points:
+            for p in report_points:
+                st.write("•", p)
         else:
-            st.write("No major risk factors detected")
+            st.write("No strong clinical risk factors identified.")
 
-        # ---------------- PDF REPORT ----------------
-        st.markdown("### 📄 Download Report")
-
+        # ---------------- PDF ----------------
         report_text = f"""
-        AI MEDICAL REPORT
+        AI CLINICAL REPORT
 
+        Risk: {round(proba*100,2)}%
         Glucose: {glucose}
         BMI: {bmi}
         Age: {age}
-
-        Risk: {round(probability*100,2)}%
         """
 
         pdf = SimpleDocTemplate("report.pdf", pagesize=letter)
@@ -121,46 +123,42 @@ elif page == "Prediction":
         pdf.build(content)
 
         with open("report.pdf", "rb") as f:
-            st.download_button("Download Report", f, "report.pdf")
+            st.download_button("📄 Download Clinical Report", f, "report.pdf")
 
+    # Image
     st.markdown("---")
+    st.markdown("### 🖼️ Dermatology (Experimental)")
 
-    # ---------------- IMAGE ----------------
-    st.markdown("### 🖼️ Optional: Upload skin image")
+    uploaded = st.file_uploader("Upload skin image", type=["jpg", "png"])
+    if uploaded:
+        img = Image.open(uploaded)
+        st.image(img, use_container_width=True)
+        st.info("AI dermatology module coming soon...")
 
-    uploaded_file = st.file_uploader("Upload image", type=["jpg", "png"])
-
-    if uploaded_file:
-        image = Image.open(uploaded_file)
-        st.image(image, caption="Uploaded image", use_container_width=True)
-        st.info("AI skin analysis coming soon...")
-
-# ---------------- DATA ANALYSIS ----------------
+# ---------------- DATA ----------------
 elif page == "Data Analysis":
-    st.title("📊 Dataset Overview")
+    st.title("📊 Data Analysis Dashboard")
 
-    try:
-        df = pd.read_csv("diabetes.csv")
+    df = pd.read_csv("diabetes.csv")
 
-        st.dataframe(df.head())
+    st.dataframe(df.head())
 
-        st.markdown("### 📈 Visualizations")
+    st.markdown("### 📈 Feature Distributions")
 
-        col1, col2 = st.columns(2)
+    col1, col2 = st.columns(2)
 
-        with col1:
-            fig1, ax1 = plt.subplots()
-            ax1.hist(df["Glucose"], bins=20)
-            st.pyplot(fig1)
+    with col1:
+        fig1, ax1 = plt.subplots()
+        ax1.hist(df["Glucose"], bins=20)
+        st.pyplot(fig1)
 
-        with col2:
-            fig2, ax2 = plt.subplots()
-            ax2.hist(df["BMI"], bins=20)
-            st.pyplot(fig2)
+    with col2:
+        fig2, ax2 = plt.subplots()
+        ax2.hist(df["BMI"], bins=20)
+        st.pyplot(fig2)
 
-        fig3, ax3 = plt.subplots()
-        ax3.hist(df["Age"], bins=20)
-        st.pyplot(fig3)
+    st.markdown("### 🔬 Correlation Heatmap")
 
-    except:
-        st.error("Dataset not found")
+    fig3, ax3 = plt.subplots()
+    sns.heatmap(df.corr(), annot=True, cmap="coolwarm", ax=ax3)
+    st.pyplot(fig3)
