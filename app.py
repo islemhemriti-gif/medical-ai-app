@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import joblib
 
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph
+
 st.set_page_config(
     page_title="Medical AI Diagnostic System",
     page_icon="🧬",
@@ -17,41 +20,35 @@ scaler = joblib.load("scaler.pkl")
 
 # ---------------- SIDEBAR ----------------
 st.sidebar.title("🧬 Medical AI Dashboard")
+page = st.sidebar.radio("Navigation", ["Home", "Prediction", "Data Analysis"])
 
-page = st.sidebar.radio(
-    "Navigation",
-    ["Home", "Prediction", "Data Analysis"]
-)
-
-# ---------------- HOME PAGE ----------------
+# ---------------- HOME ----------------
 if page == "Home":
     st.title("🧬 Medical AI Diagnostic System")
 
     st.markdown("""
     ### Welcome 👋
 
-    This app helps you analyze medical data using Artificial Intelligence.
+    This AI system analyzes medical lab data to estimate diabetes risk.
 
-    👉 Go to **Prediction** to enter your lab results  
+    👉 Go to **Prediction** to enter patient data  
     👉 Go to **Data Analysis** to explore dataset insights  
 
-    ⚠️ This tool is for educational purposes only (not a medical diagnosis)
+    ⚠️ Educational use only — not a medical diagnosis
     """)
 
     col1, col2 = st.columns(2)
-
     with col1:
-        st.info("AI model trained on medical dataset")
-
+        st.info("AI model trained on real dataset")
     with col2:
-        st.success("Ready for prediction")
+        st.success("System ready")
 
-# ---------------- PREDICTION PAGE ----------------
+# ---------------- PREDICTION ----------------
 elif page == "Prediction":
 
     st.title("🧪 AI Diabetes Prediction")
 
-    st.markdown("### Enter patient medical values:")
+    st.markdown("### Enter patient medical values")
 
     col1, col2, col3 = st.columns(3)
 
@@ -81,16 +78,54 @@ elif page == "Prediction":
         prediction = model.predict(scaled_data)
         probability = model.predict_proba(scaled_data)[0][1]
 
-        st.subheader("📊 Results:")
+        st.subheader("📊 Results")
 
         if prediction[0] == 1:
-            st.error(f"⚠️ High Diabetes Risk ({round(probability*100,2)}%)")
+            st.error(f"⚠️ High Risk ({round(probability*100,2)}%)")
         else:
-            st.success(f"✅ Low Diabetes Risk ({round(probability*100,2)}%)")
+            st.success(f"✅ Low Risk ({round(probability*100,2)}%)")
+
+        # ---------------- EXPLANATION ----------------
+        st.markdown("### 🧠 Explanation")
+
+        explanation = []
+
+        if glucose > 140:
+            explanation.append("High glucose increases diabetes risk")
+        if bmi > 30:
+            explanation.append("High BMI is linked to obesity risk")
+        if age > 45:
+            explanation.append("Risk increases with age")
+
+        if explanation:
+            for e in explanation:
+                st.write("•", e)
+        else:
+            st.write("No major risk factors detected")
+
+        # ---------------- PDF REPORT ----------------
+        st.markdown("### 📄 Download Report")
+
+        report_text = f"""
+        AI MEDICAL REPORT
+
+        Glucose: {glucose}
+        BMI: {bmi}
+        Age: {age}
+
+        Risk: {round(probability*100,2)}%
+        """
+
+        pdf = SimpleDocTemplate("report.pdf", pagesize=letter)
+        content = [Paragraph(report_text)]
+        pdf.build(content)
+
+        with open("report.pdf", "rb") as f:
+            st.download_button("Download Report", f, "report.pdf")
 
     st.markdown("---")
 
-    # Image upload
+    # ---------------- IMAGE ----------------
     st.markdown("### 🖼️ Optional: Upload skin image")
 
     uploaded_file = st.file_uploader("Upload image", type=["jpg", "png"])
@@ -100,42 +135,32 @@ elif page == "Prediction":
         st.image(image, caption="Uploaded image", use_container_width=True)
         st.info("AI skin analysis coming soon...")
 
-# ---------------- DATA ANALYSIS PAGE ----------------
+# ---------------- DATA ANALYSIS ----------------
 elif page == "Data Analysis":
     st.title("📊 Dataset Overview")
 
     try:
         df = pd.read_csv("diabetes.csv")
 
-        st.markdown("### Dataset Preview")
         st.dataframe(df.head())
 
-        st.markdown("---")
-        st.markdown("### 📈 Data Visualization")
+        st.markdown("### 📈 Visualizations")
 
         col1, col2 = st.columns(2)
 
-        # Glucose
         with col1:
-            st.subheader("Glucose Distribution")
             fig1, ax1 = plt.subplots()
             ax1.hist(df["Glucose"], bins=20)
             st.pyplot(fig1)
 
-        # BMI
         with col2:
-            st.subheader("BMI Distribution")
             fig2, ax2 = plt.subplots()
             ax2.hist(df["BMI"], bins=20)
             st.pyplot(fig2)
 
-        st.markdown("---")
-
-        # Age
-        st.subheader("Age Distribution")
         fig3, ax3 = plt.subplots()
         ax3.hist(df["Age"], bins=20)
         st.pyplot(fig3)
 
-    except FileNotFoundError:
-        st.error("❌ Dataset file not found. Make sure 'diabetes.csv' is in your repo.")
+    except:
+        st.error("Dataset not found")
