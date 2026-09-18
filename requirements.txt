@@ -8,3 +8,5 @@ scikit-learn
 joblib
 numpy
 reportlab
+seaborn
+reportlab
