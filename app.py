@@ -133,7 +133,7 @@ elif page == "Prediction":
     if uploaded:
         img = Image.open(uploaded)
         st.image(img, use_container_width=True)
-        st.info("AI dermatology module coming soon...")
+        st.info("Experimental module (future CNN-based dermatology classifier)")
 
 # ---------------- DATA ----------------
 elif page == "Data Analysis":
