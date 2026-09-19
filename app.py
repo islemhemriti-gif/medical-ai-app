@@ -138,7 +138,13 @@ if st.sidebar.button("📊 Data"):
 if st.sidebar.button("📚 Sources"):
     st.session_state.page = "Sources"
 
-page = st.session_state.page
+st.sidebar.markdown("---")
+
+# 🔴 LOGOUT BUTTON (NEW)
+if st.sidebar.button("🚪 Logout"):
+    st.session_state.user = None
+    st.session_state.page = "Home"
+    st.rerun()
 
 # ---------------- HOME (LANDING PAGE) ----------------
 if page == "Home":
