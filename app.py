@@ -4,8 +4,6 @@ import numpy as np
 import joblib
 from PIL import Image
 
-import tensorflow as tf
-
 from db import create_tables, add_user, login_user, add_history, get_history
 
 # ---------------- INIT ----------------
@@ -20,14 +18,6 @@ st.set_page_config(
 # ---------------- LOAD MODELS ----------------
 model = joblib.load("model.pkl")
 scaler = joblib.load("scaler.pkl")
-
-# CNN MODEL (SAFE LOAD)
-try:
-    skin_model = tf.keras.models.load_model("skin_cnn.h5")
-    cnn_loaded = True
-except:
-    skin_model = None
-    cnn_loaded = False
 
 # ---------------- SESSION ----------------
 if "user" not in st.session_state:
@@ -98,16 +88,11 @@ st.markdown("""
 st.sidebar.title("🧬 MedAI System")
 st.sidebar.write(f"User: {st.session_state.user}")
 
-if st.sidebar.button("🏠 Home"):
-    st.session_state.page = "Home"
-if st.sidebar.button("🧪 Prediction"):
-    st.session_state.page = "Prediction"
-if st.sidebar.button("📁 History"):
-    st.session_state.page = "History"
-if st.sidebar.button("📊 Data"):
-    st.session_state.page = "Data"
-if st.sidebar.button("📚 Sources"):
-    st.session_state.page = "Sources"
+pages = ["Home", "Prediction", "History", "Data", "Sources"]
+choice = st.sidebar.radio("Navigation", pages)
+
+st.session_state.page = choice
+page = choice
 
 st.sidebar.markdown("---")
 
@@ -115,8 +100,6 @@ if st.sidebar.button("🚪 Logout"):
     st.session_state.user = None
     st.session_state.page = "Home"
     st.rerun()
-
-page = st.session_state.page
 
 # ---------------- HOME ----------------
 if page == "Home":
@@ -127,7 +110,7 @@ if page == "Home":
 
     st.markdown("---")
 
-    st.info("🧠 Diabetes ML + 🖼 Skin CNN + 📊 Medical analytics")
+    st.info("🧠 Diabetes ML System + 📊 Medical Analytics (CNN coming soon)")
 
 # ---------------- PREDICTION ----------------
 elif page == "Prediction":
@@ -171,33 +154,24 @@ elif page == "Prediction":
 
     st.markdown("---")
 
-    # ---------------- SKIN AI ----------------
-    st.subheader("🖼 Skin AI Detection (CNN Model)")
+    # ---------------- SKIN AI (DISABLED SAFE VERSION) ----------------
+    st.subheader("🖼 Skin AI Detection (Coming Soon 🚀)")
 
-    img = st.file_uploader("Upload skin image", type=["jpg", "png"])
+    st.info("""
+    This feature will include:
+    - CNN Deep Learning model
+    - Skin disease classification
+    - Real medical imaging AI
 
-    if img is not None:
+    ⚠️ Currently disabled for cloud deployment stability
+    """)
 
+    img = st.file_uploader("Upload image (preview only)", type=["jpg", "png"])
+
+    if img:
         image = Image.open(img)
         st.image(image, use_container_width=True)
-
-        if not cnn_loaded:
-            st.warning("CNN model not loaded (skin_cnn.h5 missing)")
-        else:
-            img = image.convert("RGB")
-            img = img.resize((128, 128))
-            img = np.array(img) / 255.0
-            img = np.expand_dims(img, axis=0)
-
-            pred = skin_model.predict(img)[0]
-
-            class_names = ["Normal Skin", "Abnormal Skin"]
-
-            result = class_names[np.argmax(pred)]
-            confidence = np.max(pred)
-
-            st.success(f"Prediction: {result}")
-            st.info(f"Confidence: {round(confidence*100,2)}%")
+        st.warning("AI model not deployed in cloud version")
 
 # ---------------- HISTORY ----------------
 elif page == "History":
@@ -229,6 +203,6 @@ elif page == "Sources":
 
     st.markdown("""
     - PIMA Diabetes Dataset (UCI)
-    - WHO Medical Guidelines
-    - Deep Learning CNN for image classification
+    - WHO Clinical Guidelines
+    - Machine Learning for Medical Prediction
     """)
