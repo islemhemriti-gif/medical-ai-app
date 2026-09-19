@@ -4,6 +4,8 @@ import numpy as np
 import joblib
 from PIL import Image
 
+import tensorflow as tf
+
 from db import create_tables, add_user, login_user, add_history, get_history
 
 # ---------------- INIT ----------------
@@ -15,9 +17,17 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------- LOAD MODEL ----------------
+# ---------------- LOAD MODELS ----------------
 model = joblib.load("model.pkl")
 scaler = joblib.load("scaler.pkl")
+
+# CNN MODEL (SAFE LOAD)
+try:
+    skin_model = tf.keras.models.load_model("skin_cnn.h5")
+    cnn_loaded = True
+except:
+    skin_model = None
+    cnn_loaded = False
 
 # ---------------- SESSION ----------------
 if "user" not in st.session_state:
@@ -30,7 +40,6 @@ if "page" not in st.session_state:
 if st.session_state.user is None:
 
     st.title("🧬 MedAI Platform")
-    st.markdown("Clinical Intelligence System")
 
     mode = st.radio("Access System", ["Login", "Sign Up"])
 
@@ -57,42 +66,31 @@ if st.session_state.user is None:
 # ---------------- STYLE ----------------
 st.markdown("""
 <style>
-
 .stApp {
     background: radial-gradient(circle at top,#0f172a,#020617);
     color: white;
 }
 
-.card {
-    padding: 25px;
-    border-radius: 20px;
-    background: linear-gradient(145deg,#1e293b,#0f172a);
-    border: 1px solid #334155;
-    transition: 0.3s;
-    text-align: center;
-    cursor: pointer;
-}
-
-.card:hover {
-    transform: translateY(-6px);
-    border: 1px solid #38bdf8;
-}
-
 .title {
-    font-size: 42px;
+    font-size: 40px;
     font-weight: bold;
     background: linear-gradient(90deg,#38bdf8,#60a5fa,#a78bfa);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
+.card {
+    padding: 20px;
+    border-radius: 15px;
+    background: linear-gradient(145deg,#1e293b,#0f172a);
+    border: 1px solid #334155;
+}
+
 .stButton>button {
     background: linear-gradient(90deg,#2563eb,#38bdf8);
     color: white;
     border-radius: 10px;
-    width: 100%;
 }
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -118,7 +116,6 @@ if st.sidebar.button("🚪 Logout"):
     st.session_state.page = "Home"
     st.rerun()
 
-# ✅ FIX: THIS WAS YOUR ERROR
 page = st.session_state.page
 
 # ---------------- HOME ----------------
@@ -126,43 +123,16 @@ if page == "Home":
 
     st.markdown('<div class="title">MedAI Clinical Intelligence</div>', unsafe_allow_html=True)
 
-    st.markdown("AI-powered diabetes risk analysis platform")
+    st.markdown("AI-powered clinical decision support system")
 
     st.markdown("---")
 
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        st.markdown("<div class='card'>🧪 Prediction Engine</div>", unsafe_allow_html=True)
-        if st.button("Open Prediction"):
-            st.session_state.page = "Prediction"
-
-    with col2:
-        st.markdown("<div class='card'>📁 Patient History</div>", unsafe_allow_html=True)
-        if st.button("Open History"):
-            st.session_state.page = "History"
-
-    with col3:
-        st.markdown("<div class='card'>📊 Data Insights</div>", unsafe_allow_html=True)
-        if st.button("Open Data"):
-            st.session_state.page = "Data"
-
-    st.markdown("---")
-
-    col4, col5 = st.columns(2)
-
-    with col4:
-        st.markdown("<div class='card'>📚 Sources</div>", unsafe_allow_html=True)
-        if st.button("Open Sources"):
-            st.session_state.page = "Sources"
-
-    with col5:
-        st.info("System Active")
+    st.info("🧠 Diabetes ML + 🖼 Skin CNN + 📊 Medical analytics")
 
 # ---------------- PREDICTION ----------------
 elif page == "Prediction":
 
-    st.title("🧪 AI Clinical Prediction Engine")
+    st.title("🧪 Diabetes Prediction Engine")
 
     col1, col2, col3 = st.columns(3)
 
@@ -201,13 +171,33 @@ elif page == "Prediction":
 
     st.markdown("---")
 
-    st.subheader("🖼️ Skin Image (Future Feature)")
+    # ---------------- SKIN AI ----------------
+    st.subheader("🖼 Skin AI Detection (CNN Model)")
 
-    img = st.file_uploader("Upload image", type=["jpg", "png"])
+    img = st.file_uploader("Upload skin image", type=["jpg", "png"])
 
-    if img:
+    if img is not None:
+
         image = Image.open(img)
         st.image(image, use_container_width=True)
+
+        if not cnn_loaded:
+            st.warning("CNN model not loaded (skin_cnn.h5 missing)")
+        else:
+            img = image.convert("RGB")
+            img = img.resize((128, 128))
+            img = np.array(img) / 255.0
+            img = np.expand_dims(img, axis=0)
+
+            pred = skin_model.predict(img)[0]
+
+            class_names = ["Normal Skin", "Abnormal Skin"]
+
+            result = class_names[np.argmax(pred)]
+            confidence = np.max(pred)
+
+            st.success(f"Prediction: {result}")
+            st.info(f"Confidence: {round(confidence*100,2)}%")
 
 # ---------------- HISTORY ----------------
 elif page == "History":
@@ -218,9 +208,9 @@ elif page == "History":
 
     if data:
         df = pd.DataFrame(data, columns=["Glucose", "BMI", "Age", "Risk"])
-        st.dataframe(df, use_container_width=True)
+        st.dataframe(df)
     else:
-        st.info("No history available")
+        st.info("No history")
 
 # ---------------- DATA ----------------
 elif page == "Data":
@@ -232,8 +222,6 @@ elif page == "Data":
     st.bar_chart(df["Glucose"])
     st.bar_chart(df["BMI"])
 
-    st.dataframe(df.corr())
-
 # ---------------- SOURCES ----------------
 elif page == "Sources":
 
@@ -241,6 +229,6 @@ elif page == "Sources":
 
     st.markdown("""
     - PIMA Diabetes Dataset (UCI)
-    - WHO Clinical Guidelines
-    - Clinical Risk Factors (Glucose, BMI, Age)
+    - WHO Medical Guidelines
+    - Deep Learning CNN for image classification
     """)
