@@ -6,7 +6,5 @@ Pillow
 matplotlib
 scikit-learn
 joblib
-numpy
 reportlab
 seaborn
-reportlab
