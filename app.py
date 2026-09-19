@@ -140,6 +140,13 @@ if st.sidebar.button("📚 Sources"):
 
 st.sidebar.markdown("---")
 
+if st.sidebar.button("🚪 Logout"):
+    st.session_state.user = None
+    st.session_state.page = "Home"
+    st.rerun()
+
+# ✅ FIX MISSING VARIABLE (IMPORTANT)
+page = st.session_state.page
 # 🔴 LOGOUT BUTTON (NEW)
 if st.sidebar.button("🚪 Logout"):
     st.session_state.user = None
