@@ -10,3 +10,4 @@ reportlab
 seaborn
 keras
 opencv-python
+tensorflow
