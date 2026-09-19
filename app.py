@@ -29,19 +29,8 @@ if "page" not in st.session_state:
 # ---------------- AUTH ----------------
 if st.session_state.user is None:
 
-    st.markdown("""
-    <style>
-    .auth-box {
-        padding: 40px;
-        border-radius: 20px;
-        background: linear-gradient(135deg,#0f172a,#1e293b);
-        text-align: center;
-        color: white;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-    st.markdown("<div class='auth-box'><h1>🧬 MedAI Platform</h1><p>Clinical Intelligence System</p></div>", unsafe_allow_html=True)
+    st.title("🧬 MedAI Platform")
+    st.markdown("Clinical Intelligence System")
 
     mode = st.radio("Access System", ["Login", "Sign Up"])
 
@@ -65,33 +54,30 @@ if st.session_state.user is None:
 
     st.stop()
 
-# ---------------- STYLE (LANDING UI) ----------------
+# ---------------- STYLE ----------------
 st.markdown("""
 <style>
 
-/* BACKGROUND */
 .stApp {
     background: radial-gradient(circle at top,#0f172a,#020617);
     color: white;
 }
 
-/* CARD STYLE */
 .card {
     padding: 25px;
     border-radius: 20px;
     background: linear-gradient(145deg,#1e293b,#0f172a);
     border: 1px solid #334155;
     transition: 0.3s;
-    cursor: pointer;
     text-align: center;
-}
-.card:hover {
-    transform: translateY(-8px);
-    border: 1px solid #38bdf8;
-    box-shadow: 0 10px 30px rgba(56,189,248,0.2);
+    cursor: pointer;
 }
 
-/* TITLE */
+.card:hover {
+    transform: translateY(-6px);
+    border: 1px solid #38bdf8;
+}
+
 .title {
     font-size: 42px;
     font-weight: bold;
@@ -100,26 +86,13 @@ st.markdown("""
     -webkit-text-fill-color: transparent;
 }
 
-/* SUBTITLE */
-.subtitle {
-    color: #94a3b8;
-    font-size: 18px;
-}
-
-/* BUTTONS */
 .stButton>button {
     background: linear-gradient(90deg,#2563eb,#38bdf8);
     color: white;
-    border-radius: 12px;
-    height: 3em;
+    border-radius: 10px;
     width: 100%;
-    font-weight: bold;
-    border: none;
 }
 
-.stButton>button:hover {
-    transform: scale(1.03);
-}
 </style>
 """, unsafe_allow_html=True)
 
@@ -145,39 +118,32 @@ if st.sidebar.button("🚪 Logout"):
     st.session_state.page = "Home"
     st.rerun()
 
-# ✅ FIX MISSING VARIABLE (IMPORTANT)
+# ✅ FIX: THIS WAS YOUR ERROR
 page = st.session_state.page
-# 🔴 LOGOUT BUTTON (NEW)
-if st.sidebar.button("🚪 Logout"):
-    st.session_state.user = None
-    st.session_state.page = "Home"
-    st.rerun()
 
-# ---------------- HOME (LANDING PAGE) ----------------
+# ---------------- HOME ----------------
 if page == "Home":
 
     st.markdown('<div class="title">MedAI Clinical Intelligence</div>', unsafe_allow_html=True)
 
-    st.markdown('<div class="subtitle">AI-powered diabetes risk analysis platform</div>', unsafe_allow_html=True)
+    st.markdown("AI-powered diabetes risk analysis platform")
 
     st.markdown("---")
-
-    st.markdown("### 🚀 Explore the system")
 
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.markdown("<div class='card'>🧪<h3>Prediction Engine</h3><p>Analyze medical inputs with AI</p></div>", unsafe_allow_html=True)
+        st.markdown("<div class='card'>🧪 Prediction Engine</div>", unsafe_allow_html=True)
         if st.button("Open Prediction"):
             st.session_state.page = "Prediction"
 
     with col2:
-        st.markdown("<div class='card'>📁<h3>Patient History</h3><p>Track past predictions</p></div>", unsafe_allow_html=True)
+        st.markdown("<div class='card'>📁 Patient History</div>", unsafe_allow_html=True)
         if st.button("Open History"):
             st.session_state.page = "History"
 
     with col3:
-        st.markdown("<div class='card'>📊<h3>Data Insights</h3><p>Visualize medical dataset</p></div>", unsafe_allow_html=True)
+        st.markdown("<div class='card'>📊 Data Insights</div>", unsafe_allow_html=True)
         if st.button("Open Data"):
             st.session_state.page = "Data"
 
@@ -186,12 +152,12 @@ if page == "Home":
     col4, col5 = st.columns(2)
 
     with col4:
-        st.markdown("<div class='card'>📚<h3>Sources</h3><p>Medical references & dataset</p></div>", unsafe_allow_html=True)
+        st.markdown("<div class='card'>📚 Sources</div>", unsafe_allow_html=True)
         if st.button("Open Sources"):
             st.session_state.page = "Sources"
 
     with col5:
-        st.markdown("<div class='card'>🧬<h3>Status</h3><p>System Active</p></div>", unsafe_allow_html=True)
+        st.info("System Active")
 
 # ---------------- PREDICTION ----------------
 elif page == "Prediction":
@@ -227,7 +193,7 @@ elif page == "Prediction":
         st.success(f"Risk Score: {round(proba*100,2)}%")
 
         if pred == 1:
-            st.error("⚠️ High Risk Detected")
+            st.error("⚠️ High Risk")
         else:
             st.success("Low Risk")
 
@@ -235,13 +201,13 @@ elif page == "Prediction":
 
     st.markdown("---")
 
-    st.subheader("🖼️ Optional Skin Image (Future AI Module)")
+    st.subheader("🖼️ Skin Image (Future Feature)")
+
     img = st.file_uploader("Upload image", type=["jpg", "png"])
 
     if img:
         image = Image.open(img)
         st.image(image, use_container_width=True)
-        st.info("Future upgrade: CNN medical imaging model")
 
 # ---------------- HISTORY ----------------
 elif page == "History":
@@ -274,7 +240,7 @@ elif page == "Sources":
     st.title("📚 Medical References")
 
     st.markdown("""
-    - PIMA Indians Diabetes Dataset (UCI)
+    - PIMA Diabetes Dataset (UCI)
     - WHO Clinical Guidelines
-    - Clinical risk factors: glucose, BMI, age
+    - Clinical Risk Factors (Glucose, BMI, Age)
     """)
