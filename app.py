@@ -15,7 +15,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------- LOAD MODELS ----------------
+# ---------------- LOAD MODEL ----------------
 model = joblib.load("model.pkl")
 scaler = joblib.load("scaler.pkl")
 
@@ -30,6 +30,7 @@ if "page" not in st.session_state:
 if st.session_state.user is None:
 
     st.title("🧬 MedAI Platform")
+    st.markdown("Clinical Intelligence System")
 
     mode = st.radio("Access System", ["Login", "Sign Up"])
 
@@ -56,31 +57,42 @@ if st.session_state.user is None:
 # ---------------- STYLE ----------------
 st.markdown("""
 <style>
+
 .stApp {
     background: radial-gradient(circle at top,#0f172a,#020617);
     color: white;
 }
 
+.card {
+    padding: 25px;
+    border-radius: 20px;
+    background: linear-gradient(145deg,#1e293b,#0f172a);
+    border: 1px solid #334155;
+    transition: 0.3s;
+    text-align: center;
+    cursor: pointer;
+}
+
+.card:hover {
+    transform: translateY(-6px);
+    border: 1px solid #38bdf8;
+}
+
 .title {
-    font-size: 40px;
+    font-size: 42px;
     font-weight: bold;
     background: linear-gradient(90deg,#38bdf8,#60a5fa,#a78bfa);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
-.card {
-    padding: 20px;
-    border-radius: 15px;
-    background: linear-gradient(145deg,#1e293b,#0f172a);
-    border: 1px solid #334155;
-}
-
 .stButton>button {
     background: linear-gradient(90deg,#2563eb,#38bdf8);
     color: white;
     border-radius: 10px;
+    width: 100%;
 }
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -88,11 +100,16 @@ st.markdown("""
 st.sidebar.title("🧬 MedAI System")
 st.sidebar.write(f"User: {st.session_state.user}")
 
-pages = ["Home", "Prediction", "History", "Data", "Sources"]
-choice = st.sidebar.radio("Navigation", pages)
-
-st.session_state.page = choice
-page = choice
+if st.sidebar.button("🏠 Home"):
+    st.session_state.page = "Home"
+if st.sidebar.button("🧪 Prediction"):
+    st.session_state.page = "Prediction"
+if st.sidebar.button("📁 History"):
+    st.session_state.page = "History"
+if st.sidebar.button("📊 Data"):
+    st.session_state.page = "Data"
+if st.sidebar.button("📚 Sources"):
+    st.session_state.page = "Sources"
 
 st.sidebar.markdown("---")
 
@@ -101,21 +118,51 @@ if st.sidebar.button("🚪 Logout"):
     st.session_state.page = "Home"
     st.rerun()
 
+# ✅ FIX: THIS WAS YOUR ERROR
+page = st.session_state.page
+
 # ---------------- HOME ----------------
 if page == "Home":
 
     st.markdown('<div class="title">MedAI Clinical Intelligence</div>', unsafe_allow_html=True)
 
-    st.markdown("AI-powered clinical decision support system")
+    st.markdown("AI-powered diabetes risk analysis platform")
 
     st.markdown("---")
 
-    st.info("🧠 Diabetes ML System + 📊 Medical Analytics (CNN coming soon)")
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.markdown("<div class='card'>🧪 Prediction Engine</div>", unsafe_allow_html=True)
+        if st.button("Open Prediction"):
+            st.session_state.page = "Prediction"
+
+    with col2:
+        st.markdown("<div class='card'>📁 Patient History</div>", unsafe_allow_html=True)
+        if st.button("Open History"):
+            st.session_state.page = "History"
+
+    with col3:
+        st.markdown("<div class='card'>📊 Data Insights</div>", unsafe_allow_html=True)
+        if st.button("Open Data"):
+            st.session_state.page = "Data"
+
+    st.markdown("---")
+
+    col4, col5 = st.columns(2)
+
+    with col4:
+        st.markdown("<div class='card'>📚 Sources</div>", unsafe_allow_html=True)
+        if st.button("Open Sources"):
+            st.session_state.page = "Sources"
+
+    with col5:
+        st.info("System Active")
 
 # ---------------- PREDICTION ----------------
 elif page == "Prediction":
 
-    st.title("🧪 Diabetes Prediction Engine")
+    st.title("🧪 AI Clinical Prediction Engine")
 
     col1, col2, col3 = st.columns(3)
 
@@ -154,24 +201,13 @@ elif page == "Prediction":
 
     st.markdown("---")
 
-    # ---------------- SKIN AI (DISABLED SAFE VERSION) ----------------
-    st.subheader("🖼 Skin AI Detection (Coming Soon 🚀)")
+    st.subheader("🖼️ Skin Image (Future Feature)")
 
-    st.info("""
-    This feature will include:
-    - CNN Deep Learning model
-    - Skin disease classification
-    - Real medical imaging AI
-
-    ⚠️ Currently disabled for cloud deployment stability
-    """)
-
-    img = st.file_uploader("Upload image (preview only)", type=["jpg", "png"])
+    img = st.file_uploader("Upload image", type=["jpg", "png"])
 
     if img:
         image = Image.open(img)
         st.image(image, use_container_width=True)
-        st.warning("AI model not deployed in cloud version")
 
 # ---------------- HISTORY ----------------
 elif page == "History":
@@ -182,9 +218,9 @@ elif page == "History":
 
     if data:
         df = pd.DataFrame(data, columns=["Glucose", "BMI", "Age", "Risk"])
-        st.dataframe(df)
+        st.dataframe(df, use_container_width=True)
     else:
-        st.info("No history")
+        st.info("No history available")
 
 # ---------------- DATA ----------------
 elif page == "Data":
@@ -196,6 +232,8 @@ elif page == "Data":
     st.bar_chart(df["Glucose"])
     st.bar_chart(df["BMI"])
 
+    st.dataframe(df.corr())
+
 # ---------------- SOURCES ----------------
 elif page == "Sources":
 
@@ -204,5 +242,5 @@ elif page == "Sources":
     st.markdown("""
     - PIMA Diabetes Dataset (UCI)
     - WHO Clinical Guidelines
-    - Machine Learning for Medical Prediction
+    - Clinical Risk Factors (Glucose, BMI, Age)
     """)
