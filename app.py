@@ -28,7 +28,7 @@ if st.session_state.user is None:
 
     st.title("🧬 Medical AI Platform")
 
-    mode = st.radio("Choose mode", ["Login", "Sign Up"])
+    mode = st.radio("Login System", ["Login", "Sign Up"])
 
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
@@ -50,30 +50,100 @@ if st.session_state.user is None:
 
     st.stop()
 
+# ---------------- NAVIGATION STATE ----------------
+if "page" not in st.session_state:
+    st.session_state.page = "Home"
+
+# ---------------- STYLE (HOME DASHBOARD LOOK) ----------------
+st.markdown("""
+<style>
+.big-card {
+    padding: 25px;
+    border-radius: 20px;
+    background-color: #111827;
+    color: white;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.3s;
+    border: 1px solid #1f2937;
+}
+.big-card:hover {
+    transform: scale(1.05);
+    border: 1px solid #38bdf8;
+}
+.title {
+    font-size: 40px;
+    font-weight: bold;
+    color: #38bdf8;
+}
+.subtitle {
+    color: #94a3b8;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # ---------------- SIDEBAR ----------------
 st.sidebar.title("🧬 AI Medical System")
 st.sidebar.write(f"User: {st.session_state.user}")
 
-page = st.sidebar.radio(
-    "Navigation",
-    ["Home", "Prediction", "History", "Data", "Sources"]
-)
+if st.sidebar.button("🏠 Home"):
+    st.session_state.page = "Home"
+if st.sidebar.button("🧪 Prediction"):
+    st.session_state.page = "Prediction"
+if st.sidebar.button("📁 History"):
+    st.session_state.page = "History"
+if st.sidebar.button("📊 Data"):
+    st.session_state.page = "Data"
+if st.sidebar.button("📚 Sources"):
+    st.session_state.page = "Sources"
 
-# ---------------- HOME ----------------
+page = st.session_state.page
+
+# ---------------- HOME DASHBOARD ----------------
 if page == "Home":
-    st.title("AI Clinical Decision Support System")
+
+    st.markdown('<div class="title">🧬 Medical AI Platform</div>', unsafe_allow_html=True)
 
     st.markdown("""
     ### Welcome 👋
-    Predict diabetes risk using machine learning.
 
-    ⚠️ Educational use only
+    This is an AI-powered clinical decision support system.
+
+    It predicts diabetes risk using medical data and machine learning.
     """)
+
+    st.markdown("---")
+    st.markdown("### 🚀 Choose a module")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        if st.button("🧪 Prediction Engine"):
+            st.session_state.page = "Prediction"
+
+    with col2:
+        if st.button("📁 Patient History"):
+            st.session_state.page = "History"
+
+    with col3:
+        if st.button("📊 Data Analysis"):
+            st.session_state.page = "Data"
+
+    st.markdown("---")
+
+    col4, col5 = st.columns(2)
+
+    with col4:
+        if st.button("📚 Sources"):
+            st.session_state.page = "Sources"
+
+    with col5:
+        st.info("AI System Active")
 
 # ---------------- PREDICTION ----------------
 elif page == "Prediction":
 
-    st.title("🧪 Clinical Prediction")
+    st.title("🧪 Clinical Prediction Engine")
 
     col1, col2, col3 = st.columns(3)
 
@@ -91,7 +161,6 @@ elif page == "Prediction":
         dpf = st.number_input("Diabetes Pedigree", 0.0, 2.5, 0.5)
         age = st.number_input("Age", 1, 120, 30)
 
-    # ---------------- PREDICTION BUTTON ----------------
     if st.button("Run AI Analysis"):
 
         data = np.array([[pregnancies, glucose, blood_pressure,
@@ -114,19 +183,18 @@ elif page == "Prediction":
         else:
             st.success("Low Risk")
 
-        # save history
         add_history(st.session_state.user, glucose, bmi, age, float(proba))
 
-    # ---------------- IMAGE UPLOAD (ONLY HERE) ----------------
+    # IMAGE (still inside prediction ONLY)
     st.markdown("---")
-    st.subheader("🖼️ Skin Image Analysis (Experimental)")
+    st.subheader("🖼️ Skin Image (Experimental)")
 
-    uploaded_file = st.file_uploader("Upload skin image", type=["jpg", "png"])
+    img = st.file_uploader("Upload image", type=["jpg", "png"])
 
-    if uploaded_file is not None:
-        image = Image.open(uploaded_file)
-        st.image(image, caption="Uploaded Image", use_container_width=True)
-        st.info("AI skin analysis coming soon (CNN model upgrade)")
+    if img is not None:
+        image = Image.open(img)
+        st.image(image, use_container_width=True)
+        st.info("Future CNN model upgrade")
 
 # ---------------- HISTORY ----------------
 elif page == "History":
@@ -161,5 +229,5 @@ elif page == "Sources":
     st.markdown("""
     - PIMA Diabetes Dataset (UCI)
     - WHO Clinical Guidelines
-    - ML-based risk factors (glucose, BMI, age)
+    - Standard clinical risk factors (glucose, BMI, age)
     """)
