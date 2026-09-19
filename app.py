@@ -2,115 +2,129 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
-import os
-from PIL import Image
 
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-from reportlab.lib.pagesizes import letter
+from db import create_tables, add_user, login_user, add_history, get_history
 
-# ---------------- PAGE CONFIG ----------------
-st.set_page_config(page_title="Medical AI Platform", layout="wide")
+# ---------------- INIT ----------------
+create_tables()
 
-# ---------------- FILES ----------------
-USERS_FILE = "users.csv"
-HISTORY_FILE = "history.csv"
+st.set_page_config(
+    page_title="Medical AI Platform",
+    page_icon="🧬",
+    layout="wide"
+)
+
+# ---------------- STYLE (PREMIUM UI) ----------------
+st.markdown("""
+<style>
+body {
+    background-color: #0f172a;
+    color: white;
+}
+
+.main {
+    background-color: #0f172a;
+}
+
+h1, h2, h3 {
+    color: #38bdf8;
+}
+
+.stButton>button {
+    background-color: #2563eb;
+    color: white;
+    border-radius: 10px;
+    height: 3em;
+    width: 100%;
+    font-weight: bold;
+}
+
+.stMetric {
+    background-color: #1e293b;
+    padding: 15px;
+    border-radius: 12px;
+}
+
+.css-1d391kg {
+    background-color: #111827;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # ---------------- LOAD MODEL ----------------
 model = joblib.load("model.pkl")
 scaler = joblib.load("scaler.pkl")
 
-# ---------------- HELPERS ----------------
-def load_users():
-    if os.path.exists(USERS_FILE):
-        return pd.read_csv(USERS_FILE)
-    return pd.DataFrame(columns=["username", "password"])
-
-def save_user(username, password):
-    df = load_users()
-    if username in df["username"].values:
-        return False
-    df = pd.concat([df, pd.DataFrame([{"username": username, "password": password}])])
-    df.to_csv(USERS_FILE, index=False)
-    return True
-
-def save_history(row):
-    df = pd.DataFrame([row])
-    if os.path.exists(HISTORY_FILE):
-        old = pd.read_csv(HISTORY_FILE)
-        df = pd.concat([old, df])
-    df.to_csv(HISTORY_FILE, index=False)
-
 # ---------------- SESSION ----------------
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
+if "user" not in st.session_state:
     st.session_state.user = None
 
-# ---------------- AUTH SYSTEM ----------------
-if not st.session_state.logged_in:
+# ---------------- AUTH ----------------
+if st.session_state.user is None:
 
-    st.title("🔐 Medical AI Platform")
+    st.title("🧬 Medical AI Platform")
 
-    auth_mode = st.selectbox("Choose option", ["Login", "Sign Up"])
+    st.markdown("### AI Clinical Decision Support System")
 
-    if auth_mode == "Sign Up":
-        st.subheader("Create account")
+    mode = st.radio("Choose mode", ["Login", "Sign Up"])
 
-        new_user = st.text_input("Username")
-        new_pass = st.text_input("Password", type="password")
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
 
+    if mode == "Sign Up":
         if st.button("Create Account"):
-            if save_user(new_user, new_pass):
+            if add_user(username, password):
                 st.success("Account created successfully")
             else:
-                st.error("Username already exists")
+                st.error("User already exists")
 
     else:
-        st.subheader("Login")
-
-        username = st.text_input("Username")
-        password = st.text_input("Password", type="password")
-
         if st.button("Login"):
-            users = load_users()
-            if ((users["username"] == username) &
-                (users["password"] == password)).any():
-
-                st.session_state.logged_in = True
+            if login_user(username, password):
                 st.session_state.user = username
-                st.success(f"Welcome {username}")
+                st.success("Welcome " + username)
             else:
                 st.error("Invalid credentials")
 
     st.stop()
 
 # ---------------- SIDEBAR ----------------
-st.sidebar.title("🧬 Medical AI Platform")
-st.sidebar.write(f"Logged in as: **{st.session_state.user}**")
+st.sidebar.title("🧬 Medical AI System")
+st.sidebar.write(f"User: **{st.session_state.user}**")
 
-page = st.sidebar.radio("Navigation", ["Home", "Prediction", "History", "Data", "Sources"])
+page = st.sidebar.radio(
+    "Navigation",
+    ["🏠 Home", "🧪 Prediction", "📁 History", "📊 Data", "📚 Sources"]
+)
 
 # ---------------- HOME ----------------
-if page == "Home":
-    st.title("🧬 Medical AI Clinical Decision System")
+if page == "🏠 Home":
+    st.title("AI Clinical Decision Support Platform")
 
     st.markdown("""
-    ### AI-powered diabetes risk prediction platform
+    ### Welcome 👋
 
-    This system uses machine learning trained on medical datasets
-    to estimate diabetes risk and generate clinical reports.
+    This system predicts diabetes risk using machine learning trained on clinical data.
 
-    ⚠️ Educational purpose only
+    ---
+    ### Features:
+    - AI Prediction Engine
+    - User-based history tracking
+    - Clinical report generation
+    - Data visualization dashboard
+
+    ⚠️ Educational use only
     """)
 
     col1, col2, col3 = st.columns(3)
     col1.metric("Model", "Random Forest")
     col2.metric("Dataset", "PIMA Indians")
-    col3.metric("Type", "Clinical AI")
+    col3.metric("System", "Active")
 
 # ---------------- PREDICTION ----------------
-elif page == "Prediction":
+elif page == "🧪 Prediction":
 
-    st.title("🧪 Clinical Prediction Engine")
+    st.title("Clinical Prediction Engine")
 
     col1, col2, col3 = st.columns(3)
 
@@ -130,79 +144,52 @@ elif page == "Prediction":
 
     if st.button("Run AI Analysis"):
 
-        input_data = np.array([[pregnancies, glucose, blood_pressure,
-                                skin, insulin, bmi, dpf, age]])
+        data = np.array([[pregnancies, glucose, blood_pressure,
+                          skin, insulin, bmi, dpf, age]])
 
-        scaled = scaler.transform(input_data)
+        scaled = scaler.transform(data)
 
         pred = model.predict(scaled)[0]
         proba = model.predict_proba(scaled)[0][1]
 
-        st.subheader("📊 AI Results")
+        st.markdown("### Results Dashboard")
 
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Risk %", f"{round(proba*100,2)}%")
-        col2.metric("Glucose", glucose)
-        col3.metric("BMI", bmi)
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Risk %", f"{round(proba*100,2)}%")
+        c2.metric("Glucose", glucose)
+        c3.metric("BMI", bmi)
 
         if pred == 1:
             st.error("⚠️ High Diabetes Risk")
         else:
-            st.success("✅ Low Risk")
+            st.success("Low Risk")
 
         # ---------------- SAVE HISTORY ----------------
-        save_history({
-            "user": st.session_state.user,
-            "glucose": glucose,
-            "bmi": bmi,
-            "age": age,
-            "risk": round(proba*100,2)
-        })
-
-        # ---------------- REPORT ----------------
-        report_text = f"""
-        MEDICAL AI REPORT
-
-        Patient: {st.session_state.user}
-
-        Glucose: {glucose}
-        BMI: {bmi}
-        Age: {age}
-
-        Risk: {round(proba*100,2)}%
-
-        Interpretation:
-        {"High risk detected" if pred==1 else "Low risk detected"}
-
-        Source:
-        PIMA Indians Diabetes Dataset (UCI Machine Learning Repository)
-        """
-
-        pdf = SimpleDocTemplate("report.pdf", pagesize=letter)
-        content = []
-
-        for line in report_text.split("\n"):
-            content.append(Paragraph(line))
-            content.append(Spacer(1, 6))
-
-        pdf.build(content)
-
-        with open("report.pdf", "rb") as f:
-            st.download_button("📄 Download Report", f, "report.pdf")
+        add_history(
+            st.session_state.user,
+            glucose,
+            bmi,
+            age,
+            float(proba)
+        )
 
 # ---------------- HISTORY ----------------
-elif page == "History":
-    st.title("📁 Patient History")
+elif page == "📁 History":
 
-    if os.path.exists(HISTORY_FILE):
-        df = pd.read_csv(HISTORY_FILE)
-        st.dataframe(df)
+    st.title("Patient History")
+
+    data = get_history(st.session_state.user)
+
+    if data:
+        df = pd.DataFrame(data, columns=["Glucose", "BMI", "Age", "Risk"])
+        st.dataframe(df, use_container_width=True)
     else:
-        st.info("No history yet")
+        st.info("No history found")
 
 # ---------------- DATA ----------------
-elif page == "Data":
-    st.title("📊 Dataset Analysis")
+elif page == "📊 Data":
+
+    st.title("Dataset Analysis")
 
     df = pd.read_csv("diabetes.csv")
 
@@ -214,31 +201,21 @@ elif page == "Data":
     with col2:
         st.bar_chart(df["BMI"])
 
-    st.subheader("Correlation Heatmap")
+    st.subheader("Correlation Matrix")
     st.dataframe(df.corr())
 
 # ---------------- SOURCES ----------------
-elif page == "Sources":
-    st.title("📚 Data & Medical Sources")
+elif page == "📚 Sources":
+
+    st.title("Medical & Data Sources")
 
     st.markdown("""
-    **Dataset used:**
-    - PIMA Indians Diabetes Dataset (UCI Machine Learning Repository)
+    - PIMA Indians Diabetes Dataset (UCI)
+    - WHO Diabetes Guidelines
+    - Clinical Risk Factors: glucose, BMI, age, insulin
 
-    **Medical reference basis:**
-    - WHO guidelines for diabetes risk factors
-    - Clinical indicators: glucose, BMI, age, insulin levels
-
-    **Disclaimer:**
-    This tool is not a medical diagnostic device.
-    It is for educational and research purposes only.
+    ⚠️ This is an educational simulation, not a medical device.
     """)
-
-# ---------------- IMAGE ----------------
-st.markdown("---")
-st.markdown("### 🖼️ Experimental AI Imaging Module")
-
-img = st.file_uploader("Upload medical image", type=["jpg", "png"])
 
 if img:
     image = Image.open(img)
