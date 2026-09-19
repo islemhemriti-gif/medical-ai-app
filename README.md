@@ -58,7 +58,18 @@ An AI-powered web application that predicts diabetes risk using machine learning
 This project is for **educational purposes only** and not a medical diagnostic tool.
 
 ---
+USER
+ ↓
+STREAMLIT APP
+ ↓
+ ├── Login / Signup
+ ├── Prediction (ML Model)
+ ├── History (CSV storage)
+ ├── Data Analysis
+ └── PDF Report Generator
 
+ML PIPELINE (Colab)
+ Dataset → Cleaning → Training → model.pkl + scaler.pkl
 ##  Demo
 
 https://medical-ai-app-mxdg67a2zhdrhghocwq6cn.streamlit.app/ 
