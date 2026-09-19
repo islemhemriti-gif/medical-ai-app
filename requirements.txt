@@ -8,6 +8,5 @@ scikit-learn
 joblib
 reportlab
 seaborn
-tensorflow
 keras
 opencv-python
